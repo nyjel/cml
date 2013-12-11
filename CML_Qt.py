@@ -34,26 +34,16 @@ gei = GradientEditorItem()
 gei.loadPreset('cyclic')
 LUT = gei.getLookupTable(n, alpha=False)
 
-ll=rand(sidelen,sidelen)
 llshow=rand(sidelen,sidelen)
-
-a=1.7
-# good parms gg=.1,gl=.4,a=1.7
-# gg.05, same
-# gg 0.05, gl 0.5
-drawmod=20
-gg=0.1
-gl=0.5
-cc=gl/5 
-dkern=array([(0,cc,0.1),(cc,0,cc),(0,cc,cc)])
-i=0
 
 gen = Generator(sidelen, sidelen)
 
-def update():
-#    global ui, ptr, lastTime, fps, LUT, img
-    global a,drawmod,gg,gl,cc,dkern,i,ll,I,llshow,LUT,ui, rawImg
+drawmod=20
+i=0
 
+def update():
+
+    global i, drawmod
     useLut = LUT
     i=i+1
 
@@ -66,10 +56,6 @@ def update():
         ## Display the data
         rawImg.setImage(llshow, lut=useLut)
 
-        if (i % 80 == 0):
-                  gg=gg+.001
-                  #a=a-.001
-                  if gg<.04 : gg=gg+.02
 
 app.processEvents()  ## force complete redraw for every plot
 timer = QtCore.QTimer()

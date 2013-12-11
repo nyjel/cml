@@ -35,6 +35,9 @@ class Generator:
         Iterate / convolve the matrix
         """
 
+        global gg, i, drawmod
+
+        i = i+1
         # diffusion
         # save last for spin calc
         #last=ll
@@ -44,3 +47,9 @@ class Generator:
         # scale before adding to keep value in <-1,+1> bounds
         #ll = 1-(a*(diffScaled**2))
         self.matrix = (1-gg) * (1- (a* (diffScaled**2))) + (gg/numCells) * sum(self.matrix)
+
+        if (i>1 and i % drawmod==0):
+            if (i % 80 == 0):
+                gg=gg+.001
+                #a=a-.001
+                if gg<.04 : gg=gg+.02

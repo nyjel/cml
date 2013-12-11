@@ -27,21 +27,20 @@ class Generator:
         Create a new matrix, and populate it with a default random population
         """
         global matrix, numCells
-        matrix = rand(xsize, ysize)
+        self.matrix = rand(xsize, ysize)
         numCells = xsize * ysize
 
     def iterate(self):
         """
-        Iterate / convole the matrix
+        Iterate / convolve the matrix
         """
 
-        global matrix
         # diffusion
         # save last for spin calc
         #last=ll
-        diff=convolve2d(matrix, dkern, mode='same', boundary='wrap')
+        diff=convolve2d(self.matrix, dkern, mode='same', boundary='wrap')
         # scale before adding to keep value in <-1,+1> bounds
-        diffScaled=((1-gl) * matrix + diff)
+        diffScaled=((1-gl) * self.matrix + diff)
         # scale before adding to keep value in <-1,+1> bounds
         #ll = 1-(a*(diffScaled**2))
-        matrix = (1-gg) * (1- (a* (diffScaled**2))) + (gg/numCells) * sum(matrix)
+        self.matrix = (1-gg) * (1- (a* (diffScaled**2))) + (gg/numCells) * sum(self.matrix)

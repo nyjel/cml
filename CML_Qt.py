@@ -11,9 +11,10 @@ from numpy import *
 from numpy.random import rand
 from scipy.signal import convolve2d
 from scipy.ndimage import zoom
+from generator import Generator
 
 sidelen=128
-cells=sidelen**2
+#cells=sidelen**2
 
 #QtGui.QApplication.setGraphicsSystem('raster')
 app = QtGui.QApplication([])
@@ -28,13 +29,10 @@ win.setCentralWidget(rawImg)
 win.show()
 
 LUT = None
-def updateLUT():
-    global LUT, ui
-    n = 256
-    gei = GradientEditorItem()
-    gei.loadPreset('cyclic')
-    LUT = gei.getLookupTable(n, alpha=False)
-updateLUT()
+n = 256
+gei = GradientEditorItem()
+gei.loadPreset('cyclic')
+LUT = gei.getLookupTable(n, alpha=False)
 
 ll=rand(sidelen,sidelen)
 llshow=rand(sidelen,sidelen)
@@ -50,6 +48,8 @@ cc=gl/5
 dkern=array([(0,cc,0.1),(cc,0,cc),(0,cc,cc)])
 i=0
 
+gen = Generator(sidelen, sidelen)
+
 def update():
 #    global ui, ptr, lastTime, fps, LUT, img
     global a,drawmod,gg,gl,cc,dkern,i,ll,I,llshow,LUT,ui, rawImg
@@ -58,20 +58,11 @@ def update():
     i=i+1
 
     # diffusion
-    # save last for spin calc
-    #last=ll
-    diff=convolve2d(ll,dkern,mode='same',boundary='wrap')
-    # scale before adding to keep value in <-1,+1> bounds           
-    diffScaled=((1-gl)*ll+diff)
-    # scale before adding to keep value in <-1,+1> bounds 
-    #ll = 1-(a*(diffScaled**2))
-    ll = (1-gg)*(1-(a*(diffScaled**2)))+(gg/cells)*sum(ll)
+    gen.iterate()
 
     if (i>1 and i % drawmod==0): 
     
-        llshow=zoom((ll+1)*128, 8, order=2)
-        #print llshow[0,0]
-        
+        llshow=zoom((gen.matrix)*128, 8, order=2)
         ## Display the data
         rawImg.setImage(llshow, lut=useLut)
 

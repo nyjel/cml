@@ -5,7 +5,8 @@ Hybrid CML displayed via a RawImageWidget in QT
 
 from pyqtgraph.graphicsItems.GradientEditorItem import GradientEditorItem
 from pyqtgraph.Qt import QtGui, QtCore
-from pyqtgraph import RawImageWidget
+from pyqtgraph.widgets import RawImageWidget
+
 
 from numpy import *
 from numpy.random import rand
@@ -24,7 +25,7 @@ win.setWindowTitle('pyqtgraph example: VideoSpeedTest')
 win.setObjectName("MainWindow")
 win.resize(sidelen*8, sidelen*8)
 #rawImg = RawImageWidget(scaled=True)
-rawImg = RawImageWidget()
+rawImg = RawImageWidget.RawImageWidget()
 win.setCentralWidget(rawImg)
 win.show()
 

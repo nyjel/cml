@@ -12,8 +12,8 @@ from numpy import *
 from numpy.random import rand
 from scipy.signal import convolve2d
 from scipy.ndimage import zoom
-from generator import Generator
-
+from generator import CMLGenerator
+from pyo import *
 sidelen=128
 #cells=sidelen**2
 
@@ -35,10 +35,52 @@ gei = GradientEditorItem()
 gei.loadPreset('cyclic')
 LUT = gei.getLookupTable(n, alpha=False)
 
-llshow=rand(sidelen,sidelen)
 
-gen = Generator(sidelen, sidelen)
 
+gen = CMLGenerator(sidelen, sidelen)
+"""
+s = Server(sr=44100, nchnls=2,  buffersize=512, duplex=0).boot()
+
+SCALES = [[0,2,5,7,9,11], [0,2,3,7,8,11], [0,3,5,7,8,10]]
+
+class Melo:
+   def __init__(self, amp=.1, speed=1, midirange=(48,84)):
+       # table to record new melody fragment
+       self.table = NewTable(2)
+       # loopseg generation
+       self.base_mel = XnoiseMidi(dist=12, freq=8, x1=1, x2=.25, scale=0, mrange=midirange)
+       # snap on scale and convert to hertz
+       self.base_melo = Snap(self.base_mel, choice=[0,2,4,5,7,9,11], scale=1)
+       # record a new fragment every 10 seconds
+       self.trig_rec = Metro(time=10).play()
+       self.tab_rec = TrigTableRec(self.base_melo, self.trig_rec, self.table)
+       # rise amp of the oscillators after the first recording
+       self.amp = Counter(self.tab_rec["trig"], min=1, max=2, mul=amp)
+       # random speed for the oscillator reading the melody table + portamento
+       self.speed = Choice(choice=[.0625,.125,.125,.125,.25,.5], freq=1.0*speed)
+       self.freq = Osc(self.table, self.speed*speed)
+       self.freq_port = Port(self.freq, risetime=.01, falltime=.01)
+       # 8 randis (freq and amp) to create a chorus of oscillators
+       self.rnd_chorus = Randi(min=.99, max=1.01, freq=[random.uniform(3,6) for i in range(8)])
+       self.rnd_amp = Randi(min=0, max=.15, freq=[random.uniform(.2,.5) for i in range(8)])
+       # oscillators...
+       self.osc = LFO(self.freq_port*self.rnd_chorus, type=3, sharp=.75,
+                      mul=Port(self.amp, mul=self.rnd_amp)).out(inc=1)
+
+   def setScale(self, scl):
+       self.base_melo.choice = scl
+
+def choose_scale():
+   scl = random.choice(SCALES)
+   for obj in objs:
+       obj.setScale(scl)
+
+a = Melo(amp=.3, speed=1, midirange=(60,84))
+b = Melo(amp=.6, speed=0.5, midirange=(48,72))
+c = Melo(amp=1, speed=0.25, midirange=(36,60))
+objs = [a,b,c]
+pat = Pattern(time=20, function=choose_scale).play()
+"""
 drawmod=20
 i=0
 
@@ -52,8 +94,8 @@ def update():
     gen.iterate()
 
     if (i>1 and i % drawmod==0): 
-    
-        llshow=zoom((gen.matrix)*128, 8, order=2)
+        #llshow=gen.matrix*128
+        llshow=zoom(((gen.matrix)+1)*128, 8, order=2)
         ## Display the data
         rawImg.setImage(llshow, lut=useLut)
 
@@ -67,5 +109,6 @@ timer.start(0)
 ## Start Qt event loop unless running in interactive mode or using pyside.
 if __name__ == '__main__':
     import sys
+    # s.start()
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         QtGui.QApplication.instance().exec_()

@@ -12,9 +12,11 @@ from numpy import *
 from numpy.random import rand
 from scipy.signal import convolve2d
 from scipy.ndimage import zoom
-from generator import CMLGenerator
+from diffusiveCML import DiffusiveCML
+from competitiveCML import CompetitiveCML
 from pyo import *
-sidelen=128
+from initCML import *
+sidelen=80
 #cells=sidelen**2
 
 #QtGui.QApplication.setGraphicsSystem('raster')
@@ -32,14 +34,26 @@ win.show()
 LUT = None
 n = 256
 gei = GradientEditorItem()
-gei.loadPreset('cyclic')
+# see definition of GradientEditorItem() to define an LUT
+# presets cyclic, spectrum, thermal, flame, yellowy, bipolar, greyclip, grey
+gei.loadPreset('flame')
 LUT = gei.getLookupTable(n, alpha=False)
 
+#initLattice=imageCML('/Users/daviddemaris/Dropbox/Public/JungAionFormula.jpg')
+#win.resize(size(initLattice,0),size(initLattice,1))
 
+initLattice=randomPing(sidelen,sidelen)
 
-gen = CMLGenerator(sidelen, sidelen)
+#initLattice=magicSquare(sidelen)
+
+#initLattice=primesSquare(sidelen)
+
+#initLattice=randbin(sidelen,sidelen)
+#print initLattice
+cml = DiffusiveCML(initLattice,kern='magic11')
+#cml = CompetitiveCML(initLattice)
 """
-s = Server(sr=44100, nchnls=2,  buffersize=512, duplex=0).boot()
+s = Server(sr=44100, nchnls=2,  buffersize=2048, duplex=0).boot()
 
 SCALES = [[0,2,5,7,9,11], [0,2,3,7,8,11], [0,3,5,7,8,10]]
 
@@ -91,11 +105,12 @@ def update():
     i=i+1
 
     # diffusion
-    gen.iterate()
+    cml.iterate()
 
     if (i>1 and i % drawmod==0): 
-        #llshow=gen.matrix*128
-        llshow=zoom(((gen.matrix)+1)*128, 8, order=2)
+        #llshow=cml.matrix*128
+
+        llshow=zoom(((cml.matrix)+1)*128, 8, order=2)
         ## Display the data
         rawImg.setImage(llshow, lut=useLut)
 
@@ -109,6 +124,7 @@ timer.start(0)
 ## Start Qt event loop unless running in interactive mode or using pyside.
 if __name__ == '__main__':
     import sys
-    # s.start()
+    #s.start()
+
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         QtGui.QApplication.instance().exec_()

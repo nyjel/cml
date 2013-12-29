@@ -27,7 +27,7 @@ def randomCML(xside,yside,cmlType='KK',scaleFactor=1.0):
     return ll
 
 def randomPing(xside,yside,cmlType='KK'):
-    scale=.00000000000001
+    scale=.00000000000000
     ll=rand(xside,yside)*scale
     if cmlType == 'KK':
         ll=((ll*1.999)-.999*scale)

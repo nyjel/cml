@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Hybrid CML displayed via a RawImageWidget in QT
+For glitch free sound, you want a long buffer in pyo and order 1 on numpy zoom
 """
 
 from pyqtgraph.graphicsItems.GradientEditorItem import GradientEditorItem
@@ -16,8 +17,11 @@ from diffusiveCML import DiffusiveCML
 from competitiveCML import CompetitiveCML
 from pyo import *
 from initCML import *
-sidelen=80
+from analysisCML import *
+sidelen=120
+
 #cells=sidelen**2
+
 
 #QtGui.QApplication.setGraphicsSystem('raster')
 app = QtGui.QApplication([])
@@ -35,13 +39,15 @@ LUT = None
 n = 256
 gei = GradientEditorItem()
 # see definition of GradientEditorItem() to define an LUT
-# presets cyclic, spectrum, thermal, flame, yellowy, bipolar, greyclip, grey
-gei.loadPreset('flame')
+# presets cyclic, spectrum, thermal, flame, yellowy, bipolar, greyclip, grey,bluish
+# was cyclic, pretty nice
+gei.loadPreset('bluish')
 LUT = gei.getLookupTable(n, alpha=False)
 
 #initLattice=imageCML('/Users/daviddemaris/Dropbox/Public/JungAionFormula.jpg')
 #win.resize(size(initLattice,0),size(initLattice,1))
 
+#initLattice=randomCML(sidelen,sidelen)
 initLattice=randomPing(sidelen,sidelen)
 
 #initLattice=magicSquare(sidelen)
@@ -50,7 +56,9 @@ initLattice=randomPing(sidelen,sidelen)
 
 #initLattice=randbin(sidelen,sidelen)
 #print initLattice
-cml = DiffusiveCML(initLattice,kern='magic11')
+cml = DiffusiveCML(initLattice,kern='symm4')
+stats = AnalysisCML(initLattice)
+#cml = DiffusiveCML(initLattice,kern='magic11')
 #cml = CompetitiveCML(initLattice)
 """
 s = Server(sr=44100, nchnls=2,  buffersize=2048, duplex=0).boot()
@@ -95,22 +103,33 @@ c = Melo(amp=1, speed=0.25, midirange=(36,60))
 objs = [a,b,c]
 pat = Pattern(time=20, function=choose_scale).play()
 """
-drawmod=20
-i=0
+# drawmod is useful to limit framerate or find a cycle avoiding flicker
+drawmod=6
+
 
 def update():
 
-    global i, drawmod
+    global  drawmod, lastSpinTrend
     useLut = LUT
-    i=i+1
 
     # diffusion
     cml.iterate()
+    # calculate various statistics used for control and influencing musical parameters
+    stats.update(cml.matrix,cml.iter)
+    # try some spin control
 
-    if (i>1 and i % drawmod==0): 
+    #print 'spinTrans %d spinTrend %d lastSpinTrend %d alpha %.4f' % (stats.spinTrans, stats.spinTrend, lastSpinTrend, cml.a)
+    # experiment with spin control - number of spin transitions > threshold, or else decrease alpha
+    # if a is chaotic, it will search and find a more stable (but probably still chaotic) value reducing spin transitions
+    if stats.spinTrend>500:
+        cml.a=cml.a-.001
+
+    if (cml.iter>1 and cml.iter % drawmod==0):
+        # if an image is big, don't do the scaling but rather use it direct.  Could we somtoth
         #llshow=cml.matrix*128
 
         llshow=zoom(((cml.matrix)+1)*128, 8, order=2)
+        #llshow=zoom(((stats.spin)+1)*128, 8, order=2)
         ## Display the data
         rawImg.setImage(llshow, lut=useLut)
 

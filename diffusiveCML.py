@@ -51,10 +51,10 @@ class DiffusiveCML:
         # good parms gg=.1,gl=.4,a=1.7
         # gg.05, same
         # gg 0.05, gl 0.5
-        self.a=1.9
-        self.gg=0.1
+        self.a=1.74
+        self.gg=0.0
         #self.gl=0.454545
-        self.gl=0.3
+        self.gl=0.4
 
         # center was .05050505
         # experimental scaled magic square kernel

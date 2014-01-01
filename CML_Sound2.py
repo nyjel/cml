@@ -168,7 +168,7 @@ def update():
     i=i+1
 
     # diffusion
-
+    # experimented with global var block to prevent stats writing vars being read in music events - was getting large values in bins
     cml.iterate()
     stats.update(cml.matrix,i)
     if i>200:

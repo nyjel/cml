@@ -37,33 +37,46 @@ from scipy.signal import convolve2d
 
 class DiffusiveCML:
 
-    def __init__(self, lattice,kern='symm4'):
+    def __init__(self, lattice,kern='symm4',dynamicsParms='patsel',gl=0.4,gg=0,a=1.74,name='name',wait=0):
         """
-        take initial state as parameter
+        Parameters:
+        lattice             initial state of matrix
+        kern                coupling kernel from known sets
+        dynamicsParms       dynamical evolution parms from known sets
+        gl                  local coupling, range 0-1  (typically .5 or less)
+        gg                  global coupling range 0-1 (typically .3 or less)
+        a                   alpha nonlinearity parameter; low is periodic, high (<2.0) chaotic
+        name                pass in a name to save parameters in a file when you have something interesting
+
         """
-        #global matrix, numCells
+
         self.computeMod=20
         self.matrix = lattice
         self.numCells = size(lattice,0) * size(lattice,1)
         self.kernType=kern
+        # run a wait loop before iterating to slow down a bit
+
+        self.wait=wait
         # localIter can run multiple diffusion cycles before nonlinear map
         self.localIter=1
         # good parms gg=.1,gl=.4,a=1.7
         # gg.05, same
         # gg 0.05, gl 0.5
-        self.a=1.74
-        self.gg=0.0
-        #self.gl=0.454545
-        self.gl=0.4
+        if dynamicsParms=='patsel':
+         self.a=1.74
+         self.gg=0.0
+         #self.gl=0.454545
+         self.gl=0.4
+        if dynamicsParms=='travWave':
+            self.a=1.47
+            self.gl=0.5
+            self.gg=0
+        if dynamicsParms=='chaoticBrown':
+            self.a=1.85
+            self.gl=0.1
+            self.gg=0
 
-        # center was .05050505
-        # experimental scaled magic square kernel
-        #self.dkern=[[ 0.06837607,  0.00854701,  0.05128205],
-        #             [ 0.02564103,  0.0,  0.05982906],
-        #              [ 0.03418803,  0.07692308,  0.01709402]]
-        #self.dkern=[[ 0.08080808,  0.01010101,  0.06060606],
-         #           [ 0.03030303,  0.0,  0.07070707],
-          #          [ 0.04040404,  0.09090909,  0.02020202]]
+
         if self.kernType == 'symm4':
             self.cc=self.gl/4
             self.dkern=array([(0,self.cc,0.0),(self.cc,0,self.cc),(0,self.cc,0)])
@@ -84,8 +97,11 @@ class DiffusiveCML:
         """
         Iterate / convolve the matrix
         """
-
         self.iter += 1
+        if self.wait>0:
+            count=0
+            while count<self.wait:
+                count+=1
 
         # diffusion
 

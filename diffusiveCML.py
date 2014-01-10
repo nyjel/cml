@@ -37,7 +37,7 @@ from scipy.signal import convolve2d
 
 class DiffusiveCML:
 
-    def __init__(self, lattice,kern='symm4',dynamicsParms='patsel',gl=0.4,gg=0,a=1.74,name='name',wait=0):
+    def __init__(self, lattice,kern='symm4',dynamicsParms='',gl=0.4,gg=0.0,a=1.74,name='name',wait=0):
         """
         Parameters:
         lattice             initial state of matrix
@@ -62,11 +62,6 @@ class DiffusiveCML:
         # good parms gg=.1,gl=.4,a=1.7
         # gg.05, same
         # gg 0.05, gl 0.5
-        if dynamicsParms=='patsel':
-         self.a=1.74
-         self.gg=0.0
-         #self.gl=0.454545
-         self.gl=0.4
         if dynamicsParms=='travWave':
             self.a=1.47
             self.gl=0.5
@@ -75,7 +70,10 @@ class DiffusiveCML:
             self.a=1.85
             self.gl=0.1
             self.gg=0
-
+        # defaults tested here should match argument defaults
+        if gl!=0.4: self.gl=gl
+        if gg>=0.0: self.gg=gg
+        if a!=1.4: self.a=a
 
         if self.kernType == 'symm4':
             self.cc=self.gl/4
@@ -85,7 +83,7 @@ class DiffusiveCML:
             self.dkern=array([(self.cc,self.cc,self.cc),(self.cc,0,self.cc),(self.cc,self.cc,self.cc)])
         elif self.kernType =='asymm':
             self.cc=self.gl/5
-            self.dkern=array([(0,self.cc,0.0),(self.cc,0,0),(0,self.cc,0)])
+            self.dkern=array([(0,self.cc,0.0),(self.cc,0,self.cc),(0,self.cc,self.cc)])
         elif self.kernType == 'magic11':
             self.gl=0.404040
             self.dkern=[[ 0.08080808,  0.01010101,  0.06060606],

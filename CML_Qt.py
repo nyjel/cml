@@ -19,7 +19,7 @@ from diffusiveCML import DiffusiveCML
 
 from initCML import *
 from analysisCML import *
-sidelen=120
+sidelen=80
 
 #cells=sidelen**2
 
@@ -66,8 +66,8 @@ def update():
         # if an image is big, don't do the scaling but rather use it direct.  Could we somtoth
         #llshow=cml.matrix*128
 
-        llshow=zoom(((cml.matrix)+1)*128, 8, order=2)
-        #llshow=zoom(((stats.spin)+1)*128, 8, order=2)
+        #llshow=zoom(((cml.matrix)+1)*128, 8, order=3)
+        llshow=zoom(((stats.spin)+1)*128, 8, order=2)
         ## Display the data
         rawImg.setImage(llshow, lut=useLut)
 
@@ -77,18 +77,18 @@ cmlInit=''
 #win.resize(size(initLattice,0),size(initLattice,1))
 #cmlInit='image'
 #initLattice=randomCML(sidelen,sidelen)
-initLattice=randomPing(sidelen,sidelen,scale=0.0)
+#initLattice=randomPing(sidelen,sidelen,scale=0.0)
 #initLattice=magicSquare(sidelen)
-#initLattice=primesSquare(sidelen)
+initLattice=primesSquare(sidelen)
 #initLattice=randbin(sidelen,sidelen)
 #print initLattice
 # wait variable can slow things down by running a counter inside
-cml = DiffusiveCML(initLattice,kern='symm8',dynamicsParms='travWave',wait=10000)
+cml = DiffusiveCML(initLattice,kern='asymm',a=1.755,gl=0.07,gg=0.07,wait=10000)
 stats = AnalysisCML(initLattice)
 #cml = DiffusiveCML(initLattice,kern='magic11')
 #cml = CompetitiveCML(initLattice)
 # drawmod is useful to limit framerate or find a cycle avoiding flicker
-drawmod=1
+drawmod=7
 
 
 def update():

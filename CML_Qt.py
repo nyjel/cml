@@ -50,14 +50,14 @@ cmlInit=''
 #initLattice=imageCML('/Users/daviddemaris/Dropbox/Public/JungAionFormula.jpg')
 #win.resize(size(initLattice,0),size(initLattice,1))
 #cmlInit='image'
-#initLattice=randomCML(sidelen,sidelen)
-#initLattice=randomPing(sidelen,sidelen,scale=0.0)
+initLattice=randomCML(sidelen,sidelen,scaleFactor=.001)
+#initLattice=randomPing(sidelen,sidelen,scaleFactor=0.0)
 #initLattice=magicSquare(sidelen)
-initLattice=primesSquare(sidelen)
+#initLattice=primesSquare(sidelen)
 #initLattice=randbin(sidelen,sidelen)
 #print initLattice
 # wait variable can slow things down by running a counter inside
-cml = DiffusiveCML(initLattice,kern='asymm',a=1.755,gl=0.07,gg=0.07,wait=10000)
+cml = DiffusiveCML(initLattice,kern='asymm',a=1.955,gl=0.07,gg=0.07,wait=10000)
 stats = AnalysisCML(initLattice)
 #cml = DiffusiveCML(initLattice,kern='magic11')
 #cml = CompetitiveCML(initLattice)
@@ -80,6 +80,7 @@ def update():
     # experiment with spin control - number of spin transitions > threshold, or else decrease alpha
     # if a is chaotic, it will search and find a more stable (but probably still chaotic) value reducing spin transitions
     if stats.spinTrend>500:
+        print "reducing alpha"
         cml.a=cml.a-.001
 
     if (cml.iter>1 and cml.iter % drawmod==0):
@@ -88,7 +89,7 @@ def update():
             llshow=cml.matrix*128
         else:
             #llshow=zoom(((cml.matrix)+1)*128, 8, order=2)
-            llshow=zoom(((stats.spin)+1)*128, 8, order=2)
+            llshow=zoom(((stats.spin)+1)*128, 8, order=3)
         ## Display the data
         rawImg.setImage(llshow, lut=useLut)
 

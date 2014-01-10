@@ -45,32 +45,6 @@ gei = GradientEditorItem()
 gei.loadPreset('cyclic')
 LUT = gei.getLookupTable(n, alpha=False)
 
-def update():
-
-    global  drawmod
-    useLut = LUT
-
-    # diffusion
-    cml.iterate()
-    # calculate various statistics used for control and influencing musical parameters
-    stats.update(cml.matrix,cml.iter)
-    # try some spin control
-
-    #print 'spinTrans %d spinTrend %d lastSpinTrend %d alpha %.4f' % (stats.spinTrans, stats.spinTrend, lastSpinTrend, cml.a)
-    # experiment with spin control - number of spin transitions > threshold, or else decrease alpha
-    # if a is chaotic, it will search and find a more stable (but probably still chaotic) value reducing spin transitions
-    if stats.spinTrend>500:
-        cml.a=cml.a-.001
-
-    if (cml.iter>1 and cml.iter % drawmod==0):
-        # if an image is big, don't do the scaling but rather use it direct.  Could we somtoth
-        #llshow=cml.matrix*128
-
-        #llshow=zoom(((cml.matrix)+1)*128, 8, order=3)
-        llshow=zoom(((stats.spin)+1)*128, 8, order=2)
-        ## Display the data
-        rawImg.setImage(llshow, lut=useLut)
-
 # Various initial lattice styles
 cmlInit=''
 #initLattice=imageCML('/Users/daviddemaris/Dropbox/Public/JungAionFormula.jpg')
@@ -113,7 +87,8 @@ def update():
         if cmlInit=='image':
             llshow=cml.matrix*128
         else:
-            llshow=zoom(((cml.matrix)+1)*128, 8, order=2)
+            #llshow=zoom(((cml.matrix)+1)*128, 8, order=2)
+            llshow=zoom(((stats.spin)+1)*128, 8, order=2)
         ## Display the data
         rawImg.setImage(llshow, lut=useLut)
 

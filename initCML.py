@@ -29,7 +29,7 @@ def randomCML(xside,yside,cmlType='KK',scaleFactor=1.0):
 def randomPing(xside,yside,cmlType='KK',scaleFactor=.000000000001):
     ll=rand(xside,yside)*scaleFactor
     if cmlType == 'KK':
-        ll=((ll*1.999)-.999*scale)
+        ll=((ll*1.999)-.999*scaleFactor)
         ll[xside/2,yside/2]=.99
     else:
         # in case we add a domain 0 to 1 map

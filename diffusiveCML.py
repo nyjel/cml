@@ -62,6 +62,10 @@ class DiffusiveCML:
         # good parms gg=.1,gl=.4,a=1.7
         # gg.05, same
         # gg 0.05, gl 0.5
+        if dynamicsParms=='':
+            self.gl=0.4
+            self.gg=0.1
+            self.a=1.74
         if dynamicsParms=='travWave':
             self.a=1.47
             self.gl=0.5

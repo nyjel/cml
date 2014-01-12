@@ -12,7 +12,6 @@ from pyqtgraph.widgets import RawImageWidget
 from numpy import *
 
 from scipy.ndimage import zoom
-from scipy.stats import entropy as stentropy
 from diffusiveCML import DiffusiveCML
 from competitiveCML import CompetitiveCML
 from pyo import *
@@ -33,9 +32,9 @@ melrowspins=[]
 lastnote=-1
 melcount=0
 # threshold of normalized population used to trigger a note in the scale from bins
-thresh = 0.06
+thresh = 0.1
 # how many secs before next long phrase (chords, melodic statements)
-phraseTime=8.0
+phraseTime=4.0
 tempo=phraseTime/8.0
 basetempo=tempo
 computeTime=.02
@@ -60,10 +59,12 @@ vibctl = LFO(freq=vibctl, sharp=.8, type=7,mul=3,add=5)
 # less popping with dur
 #melEnv=Adsr(attack=tempo/2.0-.03, decay=tempo/12.0, sustain=phraseTime, release=tempo/3.0-.03, dur=tempo-.05, mul=.1)
 # merging long notes
-melEnv=Adsr(attack=tempo/2.0-.03, decay=tempo/12.0, sustain=phraseTime-.5, release=tempo/12, mul=.05)
-mel = SineLoop(freq=[250], feedback=.08, mul=melEnv)
+#melEnv=Adsr(attack=tempo/2.0-.03, decay=tempo/12.0, sustain=phraseTime-.5, release=tempo/12, mul=.05)
+melEnv=Adsr(attack=tempo/2, decay=tempo, sustain=tempo, release=tempo/4, mul=.05)
+mel = SineLoop(freq=[250], feedback=.12, mul=melEnv)
 melverb=Freeverb(mel,size=.4,bal=.5).out()
-
+melcount=0
+cmlPhase=0
 def melFromRow():
     global tempo, melrow, melrowspins, melfreqs,lastnote,melcount,block;
     #print "melCount", melrow
@@ -72,21 +73,22 @@ def melFromRow():
     block=1
     note=int(floor(16* melrow[melcount]))
     notespin=melrowspins[melcount]
-    print 'notespin', notespin
+    #print 'notespin', notespin
     freq = melfreqs[note]
     if note==lastnote:
       # keep playing same note by not releasing dur 0 envelope
       # same note
-      print "same note",melcount
+      #print "same note",melcount
       mel.feedback-=.01
       #melPat.time=tempo
     else:
       # end note
       if notespin<0:
-          mult=.4
+          mult=.5
       else:
-          mult=.9
-      melPat.time=tempo*mult+stats.bins[note]
+          mult=1.0
+      # was -stats.bin
+      #melPat.time=tempo*mult+stats.bins[note]
       if melPat.time>5:
           # somehow think this is a multithread bug where stats is updated while using
           # or used before normalization.  Used temp var in analysis to make less likely,
@@ -94,14 +96,22 @@ def melFromRow():
           # That didn't seem to work
           print 'stats.bins', stats.bins
       #print 'note',note,'melPat.time', melPat.time,'tempo',tempo
-      mel.feedback+=.01
+      mel.feedback=.12-.1*stats.bins[note]
       mel.freq = [freq+vibctl,freq*0.995+vibctl]
-      melEnv.mul=min(.07-stats.bins[note],.07)
+      melEnv.mul=.04+stats.bins[note]*2*0.03
+      #melEnv.mul=min(.07-stats.bins[note],.07)
       if melcount>0:
           melEnv.stop()
-          melEnv.play(delay=melEnv.release+.01)
+
+          # finish note and delay, but also need to delay next melody cycle?
+          # try changing time before play
+          melEnv.play(delay=melEnv.release)
+          melPat.time=melPat.time+melEnv.release+.5
+
+          #melPat.time=melPat.time+melEnv.release
       else:
           melEnv.play()
+          #melEnv.play()
       #melPat.time=melPat.time+.01
 
 #
@@ -137,28 +147,32 @@ n = 256
 gei = GradientEditorItem()
 # see definition of GradientEditorItem() to define an LUT
 # presets cyclic, spectrum, thermal, flame, yellowy, bipolar, greyclip, grey
-gei.loadPreset('flame')
+gei.loadPreset('cyclic')
 LUT = gei.getLookupTable(n, alpha=False)
 
 #initLattice=imageCML('/Users/daviddemaris/Dropbox/Public/JungAionFormula.jpg')
 #win.resize(size(initLattice,0),size(initLattice,1))
 
 #initLattice=randomCML(sidelen,sidelen)
-initLattice=randomPing(sidelen,sidelen)
+#initLattice=randomPing(sidelen,sidelen)
 
-#initLattice=magicSquare(sidelen)
+initLattice=magicSquare(sidelen)
 
 #initLattice=primesSquare(sidelen)
 
 #initLattice=randbin(sidelen,sidelen)
 #print initLattice
-cml = DiffusiveCML(initLattice,kern='symm4')
+ggIni=.05
+glIni=.2
+aIni=1.9
+kernIni='asymm'
+cml = DiffusiveCML(initLattice,kern=kernIni,gg=ggIni,gl=ggIni,a=aIni)
 stats=AnalysisCML(initLattice)
 
 #cml = CompetitiveCML(initLattice)
 
 
-drawmod=2
+drawmod=5
 i=0
 
 def update():
@@ -169,12 +183,16 @@ def update():
 
     # diffusion
     # experimented with global var block to prevent stats writing vars being read in music events - was getting large values in bins
+
     cml.iterate()
+    # don't let melody pattern happen during stats write
+    tempTime=melPat.time
+    melPat.time=10000;
     stats.update(cml.matrix,i)
-    if i>200:
-        "changing kern to asymm"
-        "changing kern to asymm"
-        cml=DiffusiveCML(cml.matrix,kern='magic11')
+    melPat.time =tempTime
+    #if i>50:
+     #   print "was changing kern to asymm"
+        #cml=DiffusiveCML(cml.matrix,kern='asymm',a=1.87,gl=0.08,gg=.04)
     # try some spin control
 
     #print 'spinTrans %d spinTrend %d lastSpinTrend %d alpha %.4f' % (stats.spinTrans, stats.spinTrend, lastSpinTrend, cml.a)
@@ -186,10 +204,12 @@ def update():
     if (i>1 and i % drawmod==0):
         #llshow=cml.matrix*128
 
-        llshow=zoom(((cml.matrix)+1)*128, 8, order=1)
+        #llshow=zoom(((cml.matrix)+1)*128, 8, order=1)
+        llshow=zoom(((stats.spin)+1)*128, 8, order=1)
         ## Display the data
         rawImg.setImage(llshow, lut=useLut)
-
+    if i==10000:
+        s.recstop()
 
 app.processEvents()  ## force complete redraw for every plot
 timer = QtCore.QTimer()
@@ -206,10 +226,9 @@ def pat():
   block=1
 
   count= cml.iter
-  print "count",count
   # cml.iter seems broken (stays zero) so this only works since transient is set to zero
   if count >= transient:
-    if count % 50 == 0:
+
       # could make the bin range "zoom" to where the action is
       """
       if count < 100:
@@ -227,21 +246,22 @@ def pat():
       #longmean=mean(longbins)
       """
 
-      h=stentropy(stats.bins)  # import stats.entropy, another from distributions was found first
+      h=stats.entropy  # import stats.entropy, another from distributions was found first
 
       # if value of normalize bins > thresh, play that note with volume (mul) in
       usedbins=where(stats.bins>thresh)[0].tolist()
       normmax=max(stats.bins)
-      subamp=[stats.bins[i] / normmax for i in usedbins]
+      subamp=[stats.bins[i] / normmax * 0.5 for i in usedbins]
 
       subfreq=[freqs[i] for i in usedbins]
       #print count, usedbins
       f.freq=subfreq
+      # modify envelope based on entropy measure h
       env = Adsr(attack=1, decay=.3, sustain=2, release=2+h/2, dur=4+h/2, mul=subamp)
       a.mul=env
       f.q=12+ h*5
       # next line intended to keep silence until transient period ends
-      if count == transient: verb.out()
+      verb.out()
       # adjust timing based on entropy
       chordPat.time=phraseTime+h
       # this will play the tone set up
@@ -250,10 +270,27 @@ def pat():
        # might want to do something like choose average over window in row, subsample
       melrow=(cml.matrix[int(sidelen/2),int(sidelen/2)-8:int(sidelen/2)+8]+1)/2.0
       melrowspins=stats.spin[int(sidelen/2),int(sidelen/2)-8:int(sidelen/2)+8]
+
+def cmlPat():
+    global ggIni, glIni, aIni, cml, cmlPhase
+
+    if cmlPhase==0:
+        print "quench"
+        cmlPhase=1
+        cml.a=1.76
+        cml.gg=.1
+        cml.gl=.2
+        cml.kernelType="symm4"
+        cml.kernelUpdate()
     else:
-      # need to compute dynamics, stats, and draw 50 per sec or will get glitchy
-      chordPat.time=.02
-  block=0
+        print "normal"
+        cmlPhase=0
+        cml.a=aIni
+        cml.gg=ggIni
+        cml.gl=glIni
+        cml.kernelType=kernIni
+        cml.kernelUpdate()
+
 
 ## Start Qt event loop unless running in interactive mode or using pyside.
 if __name__ == '__main__':
@@ -264,9 +301,12 @@ if __name__ == '__main__':
     # melody steps at tempo beats / phrases
     melPat=Pattern(melFromRow,tempo)
     melPat.play()
+    cmlLFO=tempo * 4.0
 
-
+    cmlPat=Pattern(cmlPat,cmlLFO)
+    cmlPat.play()
     s.start()
+    s.recstart()
 
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         QtGui.QApplication.instance().exec_()

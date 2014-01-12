@@ -82,7 +82,7 @@ class DiffusiveCML:
         if self.kernType == 'symm4':
             self.cc=self.gl/4
             self.dkern=array([(0,self.cc,0.0),(self.cc,0,self.cc),(0,self.cc,0)])
-        if self.kernType == 'symm8':
+        elif self.kernType == 'symm8':
             self.cc=self.gl/8
             self.dkern=array([(self.cc,self.cc,self.cc),(self.cc,0,self.cc),(self.cc,self.cc,self.cc)])
         elif self.kernType =='asymm':
@@ -94,6 +94,22 @@ class DiffusiveCML:
                          [ 0.03030303,  0.0,  0.07070707],
                          [ 0.04040404,  0.09090909,  0.02020202]]
         self.iter=0
+
+    def kernelUpdate(self):
+        if self.kernType == 'symm4':
+            self.cc=self.gl/4
+            self.dkern=array([(0,self.cc,0.0),(self.cc,0,self.cc),(0,self.cc,0)])
+        elif self.kernType == 'symm8':
+            self.cc=self.gl/8
+            self.dkern=array([(self.cc,self.cc,self.cc),(self.cc,0,self.cc),(self.cc,self.cc,self.cc)])
+        elif self.kernType =='asymm':
+            self.cc=self.gl/5
+            self.dkern=array([(0,self.cc,0.0),(self.cc,0,self.cc),(0,self.cc,self.cc)])
+        elif self.kernType == 'magic11':
+            self.gl=0.404040
+            self.dkern=[[ 0.08080808,  0.01010101,  0.06060606],
+                         [ 0.03030303,  0.0,  0.07070707],
+                         [ 0.04040404,  0.09090909,  0.02020202]]
 
     def iterate(self):
         """

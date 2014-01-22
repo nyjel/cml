@@ -37,7 +37,7 @@ from scipy.signal import convolve2d
 
 class DiffusiveCML:
 
-    def __init__(self, lattice,kern='symm4',dynamicsParms='',gl=0.4,gg=0.0,a=1.74,name='name',wait=0):
+    def __init__(self, lattice,kern='symm4',dynamicsParms='',gl=0.4,gg=0.0,a=1.74,name='name',wait=0,localIter=1):
         """
         Parameters:
         lattice             initial state of matrix
@@ -47,6 +47,7 @@ class DiffusiveCML:
         gg                  global coupling range 0-1 (typically .3 or less)
         a                   alpha nonlinearity parameter; low is periodic, high (<2.0) chaotic
         name                pass in a name to save parameters in a file when you have something interesting
+        wait                cycles to count before computation to slow down CML graphics for small arrays
 
         """
 
@@ -58,7 +59,7 @@ class DiffusiveCML:
 
         self.wait=wait
         # localIter can run multiple diffusion cycles before nonlinear map
-        self.localIter=1
+        self.localIter=localIter
         # good parms gg=.1,gl=.4,a=1.7
         # gg.05, same
         # gg 0.05, gl 0.5
@@ -89,7 +90,8 @@ class DiffusiveCML:
             self.cc=self.gl/5
             self.dkern=array([(0,self.cc,0.0),(self.cc,0,self.cc),(0,self.cc,self.cc)])
         elif self.kernType == 'magic11':
-            self.gl=0.404040
+            self.gl=0.404040404
+
             self.dkern=[[ 0.08080808,  0.01010101,  0.06060606],
                          [ 0.03030303,  0.0,  0.07070707],
                          [ 0.04040404,  0.09090909,  0.02020202]]
@@ -110,6 +112,7 @@ class DiffusiveCML:
             self.dkern=[[ 0.08080808,  0.01010101,  0.06060606],
                          [ 0.03030303,  0.0,  0.07070707],
                          [ 0.04040404,  0.09090909,  0.02020202]]
+
 
     def iterate(self):
         """

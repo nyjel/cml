@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-"""
-Hybrid CML displayed via a RawImageWidget in QT
+"""Hybrid CML displayed via a RawImageWidget in QT
 For glitch free sound, you want a long buffer in pyo and order 1 on numpy zoom
 """
 
 from pyqtgraph.graphicsItems.GradientEditorItem import GradientEditorItem
 from pyqtgraph.Qt import QtGui, QtCore
 from pyqtgraph.widgets import RawImageWidget
-
 
 from numpy import *
 
@@ -17,6 +15,12 @@ from competitiveCML import CompetitiveCML
 from pyo import *
 from initCML import *
 from analysisCML import *
+
+#import multiprocessing
+import pickle
+
+
+
 #
 #s = Server(sr=44100, nchnls=2,  buffersize=2048, duplex=0).boot()
 # set block during music event loops to prevent stats from changing
@@ -170,7 +174,7 @@ ggIni=.05
 glIni=.2
 aIni=1.9
 kernIni='asymm'
-cml = DiffusiveCML(initLattice,kern=kernIni,gg=ggIni,gl=ggIni,a=aIni)
+cml = DiffusiveCML(initLattice,kern=kernIni,gg=ggIni,gl=ggIni,a=aIni,localIter=10)
 stats=AnalysisCML(initLattice)
 
 #cml = CompetitiveCML(initLattice)
@@ -192,7 +196,7 @@ def update():
     # don't let melody pattern happen during stats write
     #tempTime=melPat.time
     #melPat.time=10000;
-    stats.update(cml.matrix,i)
+    stats.update(cml.matrix)
     #melPat.time =tempTime
     #if i>50:
      #   print "was changing kern to asymm"
@@ -208,73 +212,12 @@ def update():
     if (i>1 and i % drawmod==0):
         #llshow=cml.matrix*128
 
-        #llshow=zoom(((cml.matrix)+1)*128, 8, order=1)
-        llshow=zoom(((stats.spin)+1)*128, 8, order=1)
+        llshow=zoom(((cml.matrix)+1)*128, 8, order=1)
+        #llshow=zoom(((stats.spin)+1)*128, 8, order=1)
         ## Display the data
         rawImg.setImage(llshow, lut=useLut)
     #if i==10000:
     #    s.recstop()
-
-app.processEvents()  ## force complete redraw for every plot
-timer = QtCore.QTimer()
-timer.timeout.connect(update)
-timer.start(0)
-
-"""
-def pat():
-  # this function is called per phrase
-  # good programming practice suggests wrap these globals in a class or classes and make accessor methods
-  global cells, f1, freqs, thresh, transient, sidelen, melrow, melrowspins,block
-  #global phraseTime
-  #global soundIter
-  #global computeTime
-  block=1
-
-  count= cml.iter
-  # cml.iter seems broken (stays zero) so this only works since transient is set to zero
-  if count >= transient:
-
-      # could make the bin range "zoom" to where the action is
-
-      if count < 100:
-         bins,edges=histogram(cml.matrix,bins=16,range=(-1.0,1.0))
-      else:
-        # let the data bounds determine the min and max, giving more resolution around
-        # attractors
-         bins,edges=histogram(cml.matrix,bins=16)
-      # normalize
-
-      bins= bins/float(cells)
-      print "in chordPat,bins=",bins
-      #plot(bins,16,'r00',linewidth=1.5)
-      #longbins=longbins+bins
-      #longmean=mean(longbins)
-
-      h=stats.entropy  # import stats.entropy, another from distributions was found first
-
-      # if value of normalize bins > thresh, play that note with volume (mul) in
-      usedbins=where(stats.bins>thresh)[0].tolist()
-      normmax=max(stats.bins)
-      subamp=[stats.bins[i] / normmax * 0.5 for i in usedbins]
-
-      subfreq=[freqs[i] for i in usedbins]
-      #print count, usedbins
-      f.freq=subfreq
-      # modify envelope based on entropy measure h
-      env = Adsr(attack=1, decay=.3, sustain=2, release=2+h/2, dur=4+h/2, mul=subamp)
-      a.mul=env
-      f.q=12+ h*5
-      # next line intended to keep silence until transient period ends
-      verb.out()
-      # adjust timing based on entropy
-      chordPat.time=phraseTime+h
-      # this will play the tone set up
-      env.play()
-       # extract center of center row for 16 note melody, normalize to range 0:1
-       # might want to do something like choose average over window in row, subsample
-      melrow=(cml.matrix[int(sidelen/2),int(sidelen/2)-8:int(sidelen/2)+8]+1)/2.0
-      melrowspins=stats.spin[int(sidelen/2),int(sidelen/2)-8:int(sidelen/2)+8]
-"""
 
 def cmlPat():
     global ggIni, glIni, aIni, cml, cmlPhase
@@ -298,22 +241,26 @@ def cmlPat():
 
 
 ## Start Qt event loop unless running in interactive mode or using pyside.
+audioIndex = 0;
+def writeStatsToFile():
+    global audioIndex, queue, stats
+    audioIndex = audioIndex + 1
+    with open("stats.dat", 'wb') as f:
+        print "writing to stats", audioIndex
+        pickle.dump(stats, f)
+
+
 if __name__ == '__main__':
     import sys
-    # chords generated and row sampled for melody
-    """
-    chordPat =Pattern(pat,phraseTime)
-    chordPat.play()
-    # melody steps at tempo beats / phrases
-    melPat=Pattern(melFromRow,tempo)
-    melPat.play()
-    cmlLFO=tempo * 4.0
 
-    cmlPat=Pattern(cmlPat,cmlLFO)
-    cmlPat.play()
-    s.start()
-    s.recstart()
-    """
+    app.processEvents()  ## force complete redraw for every plot
+    timer = QtCore.QTimer()
+    timer.timeout.connect(update)
+    timer.start(0)
+
+    timer2 = QtCore.QTimer()
+    timer2.timeout.connect(writeStatsToFile)
+    timer2.start(1000)
 
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         QtGui.QApplication.instance().exec_()

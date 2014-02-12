@@ -22,9 +22,12 @@ class AnalysisCML:
         self.bins=0
         self.edges=0
         self.cumBins=0
+        self.count=0
+        self.melrow=[]
+        self.melrowspins=[]
 
 
-    def update(self,lattice,count,histrange='KKfull'):
+    def update(self,lattice,histrange='KKfull'):
         """
         Update stats for CML matrix
         """
@@ -40,6 +43,7 @@ class AnalysisCML:
             bins,self.edges=histogram(lattice,bins=self.binSpec)
 
         self.bins= bins/float(self.cells)
+
         # shannon entropy over binsh
         if self.doEntropy:
             self.entropy=entropy(self.bins)
@@ -51,16 +55,21 @@ class AnalysisCML:
             self.spin[where(self.spin<0)]=-1.0
 
         # the next block saves current state needed to compute spin and spin transitions
-        if count>=1:
+        if self.count>=1:
             if self.doSpins:
                 self.last=lattice
 
-
-                if count>1:
+                if self.count>1:
                     self.spinTrans=len(where(self.spin!=self.lastSpin)[0].tolist())
                     self.spinTrend=self.spinTrans-self.lastSpinTrans
                 self.lastSpin=self.spin
                 self.lastSpinTrans=self.spinTrans
 
+        self.count = self.count + 1
 
+        # might want to do something like choose average over window in row, subsample
+        sidelen_x = size(lattice,0)
+        sidelen_y = size(lattice, 1)
+        self.melrow = ( lattice[int(sidelen_x/2), int(sidelen_y/2)-8:int(sidelen_y/2)+8] +1) / 2.0
+        self.melrowspins = self.spin[int(sidelen_x/2), int(sidelen_y/2)-8:int(sidelen_y/2)+8]
 

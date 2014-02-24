@@ -42,7 +42,7 @@ shape = (100,100,70)
 data = ndi.gaussian_filter(np.random.normal(size=shape), (4,4,4))
 data += ndi.gaussian_filter(np.random.normal(size=shape), (15,15,15))*15
 """
-initLattice=randomPing(sidelen,sidelen,scale=0.0)
+initLattice=randomPing(sidelen,sidelen)
 
 #initLattice=magicSquare(sidelen)
 

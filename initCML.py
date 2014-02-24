@@ -8,7 +8,7 @@ from magic_square import *
 
 def imageCML(imagePath,scaleFactor=1.0):
     img=Image.open(imagePath)
-    #img=Image.open('/Users/david/Desktop/shri_mandala.jpg')
+    #img=Image.open('./sri_mandala.jpg')
     img=img.convert('L')
 
     ll=array(img.getdata(),float).reshape(img.size[1], img.size[0])

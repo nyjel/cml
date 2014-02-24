@@ -3,6 +3,7 @@
 Hybrid CML displayed via a RawImageWidget in QT
 For glitch free sound, you want a long buffer in pyo and order 1 on numpy zoom
 """
+import time
 
 from pyqtgraph.graphicsItems.GradientEditorItem import GradientEditorItem
 from pyqtgraph.Qt import QtGui, QtCore
@@ -50,24 +51,25 @@ cmlInit=''
 #initLattice=imageCML('/Users/daviddemaris/Dropbox/Public/JungAionFormula.jpg')
 #win.resize(size(initLattice,0),size(initLattice,1))
 #cmlInit='image'
-initLattice=randomCML(sidelen,sidelen,scaleFactor=.001)
+initLattice=imageCML('./sri_mandala.jpg');
 #initLattice=randomPing(sidelen,sidelen,scaleFactor=0.0)
 #initLattice=magicSquare(sidelen)
 #initLattice=primesSquare(sidelen)
 #initLattice=randbin(sidelen,sidelen)
 #print initLattice
 # wait variable can slow things down by running a counter inside
-cml = DiffusiveCML(initLattice,kern='asymm',a=1.955,gl=0.07,gg=0.07,wait=10000)
+#why do we have a, gl, and gg in here as well as initCML?
+#cml = DiffusiveCML(initLattice,kern='asymm',a=1.5,gl=0.4,gg=0.2,wait=10000)
+cml = DiffusiveCML(initLattice,kern='symm4');
 stats = AnalysisCML(initLattice)
 #cml = DiffusiveCML(initLattice,kern='magic11')
 #cml = CompetitiveCML(initLattice)
 # drawmod is useful to limit framerate or find a cycle avoiding flicker
 drawmod=7
 
-
+last_render_time = 0
 def update():
-
-    global  drawmod, cmlInit
+    global  drawmod, cmlInit, last_render_time
     useLut = LUT
 
     # diffusion
@@ -82,8 +84,15 @@ def update():
     if stats.spinTrend>500:
         print "reducing alpha"
         cml.a=cml.a-.001
+    if (cml.iter>1 and cml.iter % drawmod==0):	    
+        #calculating fps with goal of 30fps
+        current_time = time.time()
+        render_time = current_time - last_render_time
+        last_render_time = current_time
+        fps = round(1/render_time)
+        print(fps)
+	drawmod = 1
 
-    if (cml.iter>1 and cml.iter % drawmod==0):
         # if an image is big, don't do the scaling but rather use it direct.
         if cmlInit=='image':
             llshow=cml.matrix*128
@@ -92,6 +101,7 @@ def update():
             llshow=zoom(((stats.spin)+1)*128, 8, order=3)
         ## Display the data
         rawImg.setImage(llshow, lut=useLut)
+    
 
 
 app.processEvents()  ## force complete redraw for every plot

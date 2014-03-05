@@ -296,4 +296,4 @@ if __name__ == '__main__':
     readStatsFromFile()
 
     while True:
-        time.sleep(30)
+        time.sleep(5)

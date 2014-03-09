@@ -15,7 +15,7 @@ from analysisCML import *
 
 class ConfigCML:
 
-    def __init__(self):
+    def __init__(self, lastConfig):
         self.sideLen = 80
         self.colorMap = 'thermal'
         self.colorsNum = 256
@@ -36,3 +36,34 @@ class ConfigCML:
         self.drawmod=7
         self.kernType='asymm'
 
+        gei = GradientEditorItem()
+        gei.loadPreset(self.colorMap)
+        self.lut = gei.getLookupTable(self.colorsNum, alpha=False)
+
+class ConfigCML2:
+
+    def __init__(self, lastConfig):
+        self.sideLen = 80
+        self.colorMap = 'flame'
+        self.colorsNum = 256
+        #initLattice=imageCML('./sri_mandala.jpg');
+        #self.initLattice=randomPing(self.sideLen,self.sideLen,scaleFactor=0.0)
+        #self.initLattice=magicSquare(self.sideLen)
+        #self.initLattice=primesSquare(self.sideLen)
+        self.initLattice=randbin(self.sideLen,self.sideLen)
+        #self.initLattice = lastConfig.initLattice
+        #print initLattice
+        # wait variable can slow things down by running a counter inside
+        #why do we have a, gl, and gg in here as well as initCML?
+        self.cml = DiffusiveCML(self.initLattice,kern='asymm',a=1.5,gl=0.4,gg=0.2,wait=10000)
+        #self.cml = DiffusiveCML(self.initLattice,kern='symm4');
+        self.stats = AnalysisCML(self.initLattice)
+        #cml = DiffusiveCML(initLattice,kern='magic11')
+        #cml = CompetitiveCML(initLattice)
+        # drawmod is useful to limit framerate or find a cycle avoiding flicker
+        self.drawmod=20
+        self.kernType='asymm'
+
+        gei = GradientEditorItem()
+        gei.loadPreset(self.colorMap)
+        self.lut = gei.getLookupTable(self.colorsNum, alpha=False)

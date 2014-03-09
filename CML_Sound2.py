@@ -60,20 +60,28 @@ vibctl = LFO(freq=vibctl, sharp=.8, type=7,mul=3,add=5)
 #melEnv=Adsr(attack=tempo/2.0-.03, decay=tempo/12.0, sustain=phraseTime, release=tempo/3.0-.03, dur=tempo-.05, mul=.1)
 # merging long notes
 #melEnv=Adsr(attack=tempo/2.0-.03, decay=tempo/12.0, sustain=phraseTime-.5, release=tempo/12, mul=.05)
-melEnv=Adsr(attack=tempo/2, decay=tempo, sustain=tempo, release=tempo/4, mul=.05)
+#melEnv=Adsr(attack=tempo/2, decay=tempo, sustain=tempo, release=tempo/4, mul=.05)
+melEnv=Adsr(attack=tempo/5, decay=tempo/5, sustain=tempo/5, release=tempo/5, mul=1, dur=tempo-.1)
 mel = SineLoop(freq=[250], feedback=.12, mul=melEnv)
 melverb=Freeverb(mel,size=.4,bal=.5).out()
 melcount=0
 cmlPhase=0
+
 def melFromRow():
+
     global tempo, melrow, melrowspins, melfreqs,lastnote,melcount,block;
-    #print "melCount", melrow
+    print "melcount", melcount, "melrow", melrow
+
+    # if melrow not yet initialized, exit
+    if len(melrow) == 0:
+        return
+
     # get next item from row and play note
     # sample melrow at start of tempo cycle
     block=1
     note=int(floor(16* melrow[melcount]))
     notespin=melrowspins[melcount]
-    #print 'notespin', notespin
+    print 'note', note, 'notespin', notespin
     freq = melfreqs[note]
     if note==lastnote:
       # keep playing same note by not releasing dur 0 envelope
@@ -95,12 +103,13 @@ def melFromRow():
           # tried to make block vars so that updates don't happen till these code blocks complete
           # That didn't seem to work
           print 'stats.bins', stats.bins
-      #print 'note',note,'melPat.time', melPat.time,'tempo',tempo
+      print 'note',note,'melPat.time', melPat.time,'tempo',tempo
       mel.feedback=.12-.1*stats.bins[note]
       mel.freq = [freq+vibctl,freq*0.995+vibctl]
-      melEnv.mul=.04+stats.bins[note]*2*0.03
+      #melEnv.mul=.04+stats.bins[note]*2*0.03
       #melEnv.mul=min(.07-stats.bins[note],.07)
-      if melcount>0:
+      #if melcount>0:
+      if False:
           melEnv.stop()
 
           # finish note and delay, but also need to delay next melody cycle?
@@ -110,8 +119,9 @@ def melFromRow():
 
           #melPat.time=melPat.time+melEnv.release
       else:
-          melEnv.play()
           #melEnv.play()
+          #melEnv.play()
+          xxx = 11
       #melPat.time=melPat.time+.01
 
 #
@@ -166,7 +176,8 @@ ggIni=.05
 glIni=.2
 aIni=1.9
 kernIni='asymm'
-cml = DiffusiveCML(initLattice,kern=kernIni,gg=ggIni,gl=ggIni,a=aIni)
+#cml = DiffusiveCML(initLattice,kern=kernIni,gg=ggIni,gl=ggIni,a=aIni)
+cml = DiffusiveCML(initLattice,kern='magic11',a=1.685,gl=0.0,gg=0.02,wait=10000,localIter=10)
 stats=AnalysisCML(initLattice)
 
 #cml = CompetitiveCML(initLattice)
@@ -211,10 +222,10 @@ def update():
     if i==10000:
         s.recstop()
 
-app.processEvents()  ## force complete redraw for every plot
-timer = QtCore.QTimer()
-timer.timeout.connect(update)
-timer.start(0)
+#app.processEvents()  ## force complete redraw for every plot
+#timer = QtCore.QTimer()
+#timer.timeout.connect(update)
+#timer.start(0)
 
 def pat():
   # this function is called per phrase
@@ -309,4 +320,4 @@ if __name__ == '__main__':
     s.recstart()
 
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-        QtGui.QApplication.instance().exec_()
+            QtGui.QApplication.instance().exec_()

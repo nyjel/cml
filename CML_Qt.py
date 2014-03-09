@@ -51,8 +51,8 @@ cmlInit=''
 #initLattice=imageCML('/Users/daviddemaris/Dropbox/Public/JungAionFormula.jpg')
 #win.resize(size(initLattice,0),size(initLattice,1))
 #cmlInit='image'
-initLattice=imageCML('./sri_mandala.jpg');
-#initLattice=randomPing(sidelen,sidelen,scaleFactor=0.0)
+#initLattice=imageCML('./sri_mandala.jpg');
+initLattice=randomPing(sidelen,sidelen,scaleFactor=0.0)
 #initLattice=magicSquare(sidelen)
 #initLattice=primesSquare(sidelen)
 #initLattice=randbin(sidelen,sidelen)

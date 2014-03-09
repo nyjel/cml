@@ -10,7 +10,7 @@ from pyqtgraph.widgets import RawImageWidget
 from numpy import *
 
 from scipy.ndimage import zoom
-from configCML import ConfigCML
+from configCML import *
 from diffusiveCML import DiffusiveCML
 from competitiveCML import CompetitiveCML
 #from pyo import *
@@ -18,6 +18,12 @@ from initCML import *
 from analysisCML import *
 
 import pickle
+
+ggIni=.05
+glIni=.2
+aIni=1.9
+kernIni='asymm'
+
 
 class CmlGraphics:
 
@@ -68,10 +74,6 @@ class CmlGraphics:
 
     #initLattice=randbin(sidelen,sidelen)
     #print initLattice
-    ggIni=.05
-    glIni=.2
-    aIni=1.9
-    kernIni='asymm'
     cml = DiffusiveCML(initLattice,kern=kernIni,gg=ggIni,gl=ggIni,a=aIni,localIter=10)
     stats=AnalysisCML(initLattice)
 
@@ -114,14 +116,15 @@ class CmlGraphics:
             llshow = zoom(((self.config.cml.matrix)+1)*128, 8, order=1)
             #llshow=zoom(((stats.spin)+1)*128, 8, order=1)
             ## Display the data
-            rawImg.setImage(llshow, lut=self.lut)
+            rawImg.setImage(llshow, lut=self.config.lut)
         #if i==10000:
         #    s.recstop()
 
     def cmlPat(self):
-        global ggIni, glIni, aIni, cml, cmlPhase
 
-        if cmlPhase==0:
+        global aIni, ggIni, glIni
+
+        if self.cmlPhase==0:
             print "quench"
             self.cmlPhase=1
             self.cml.a=1.76
@@ -145,19 +148,28 @@ class CmlGraphics:
             print "writing to stats", audioIndex
             pickle.dump(self.config.stats, f)
 
+    def nextConfig(self):
+        global configIndex
+        configIndex = configIndex + 1;
+        if (configIndex % 2 == 1):
+            self.config = ConfigCML2(self.config)
+        else:
+            self.config = ConfigCML(self.config)
+
 
 if __name__ == '__main__':
 
     import sys
 
     audioIndex = 0;
+    configIndex = 0;
     i=0
     app = QtGui.QApplication([])
     win = QtGui.QMainWindow()
     win.setWindowTitle('CML Sound Test')
     win.setObjectName("MainWindow")
 
-    config = ConfigCML()
+    config = ConfigCML(None)
 
     win.resize(config.sideLen*8, config.sideLen*8)
 
@@ -177,5 +189,12 @@ if __name__ == '__main__':
     timer2.timeout.connect(graphics.writeStatsToFile)
     timer2.start(1000)
 
+    timer3 = QtCore.QTimer()
+    timer3.timeout.connect(graphics.nextConfig)
+    timer3.start(10000)
+
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         QtGui.QApplication.instance().exec_()
+
+    print 'end of CML3_Graphics'
+

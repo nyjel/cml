@@ -149,12 +149,10 @@ class CmlGraphics:
             pickle.dump(self.config.stats, f)
 
     def nextConfig(self):
-        global configIndex
+        global configIndex, configClassesWaits
         configIndex = configIndex + 1;
-        if (configIndex % 2 == 1):
-            self.config = ConfigCML2(self.config)
-        else:
-            self.config = ConfigCML(self.config)
+        self.config = configClassesWaits[configIndex][0](self.config)
+        QtCore.QTimer.singleShot(configClassesWaits[configIndex][1], self.nextConfig)
 
 
 if __name__ == '__main__':
@@ -162,7 +160,22 @@ if __name__ == '__main__':
     import sys
 
     audioIndex = 0;
-    configIndex = 0;
+    configIndex = -1;
+    #  A list of pairs of:
+    #     - configuration class of this configuration
+    #     - duration to display this config b4 moving to next (msecs)
+    configClassesWaits = [
+        [ConfigCML, 1000],
+        [ConfigCML2, 2000],
+        [ConfigCML3, 3000],
+        [ConfigCML4, 10000],
+        [ConfigCML5, 5000],
+        [ConfigCML, 5000],
+        [ConfigCML2, 10000],
+        [ConfigCML4, 5000],
+        [ConfigCML5, 10000]
+        ]
+
     i=0
     app = QtGui.QApplication([])
     win = QtGui.QMainWindow()
@@ -189,9 +202,11 @@ if __name__ == '__main__':
     timer2.timeout.connect(graphics.writeStatsToFile)
     timer2.start(1000)
 
-    timer3 = QtCore.QTimer()
-    timer3.timeout.connect(graphics.nextConfig)
-    timer3.start(10000)
+    #timer3 = QtCore.QTimer()
+    #timer3.timeout.connect(graphics.nextConfig)
+    #timer3.start(10000)
+
+    graphics.nextConfig()
 
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         QtGui.QApplication.instance().exec_()

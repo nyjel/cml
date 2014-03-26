@@ -18,6 +18,7 @@ from initCML import *
 from analysisCML import *
 
 import pickle
+import os, signal, subprocess, time
 
 ggIni=.05
 glIni=.2
@@ -170,10 +171,14 @@ class MyQMainWin(QtGui.QMainWindow):
 
     def keyPressEvent(self, e):
 
+        global subProcess
         print "KeyPress", e.key()
 
         # Escape -> exit
         if (e.key() == QtCore.Qt.Key_Escape):
+            # kill the sound subprocess
+            os.kill(subProcess.pid, signal.SIGTERM)
+            # kill self
             self.close()
         # space -> next config
         elif (e.key() == QtCore.Qt.Key_Space):
@@ -230,6 +235,9 @@ if __name__ == '__main__':
 
     confTimer = None
     graphics.nextConfig()
+
+    # Launch sound CML subprocess and process in global var
+    subProcess = subprocess.Popen(args=["python CML3_Sound.py"], shell=True)
 
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         QtGui.QApplication.instance().exec_()

@@ -149,10 +149,36 @@ class CmlGraphics:
             pickle.dump(self.config.stats, f)
 
     def nextConfig(self):
-        global configIndex, configClassesWaits
+        global configIndex, configClassesWaits, confTimer
         configIndex = configIndex + 1;
+        if (configIndex >= len(configClassesWaits)):
+            configIndex = 0
         self.config = configClassesWaits[configIndex][0](self.config)
-        QtCore.QTimer.singleShot(configClassesWaits[configIndex][1], self.nextConfig)
+        print "Switched to config", self.config.name
+        # Kill outstanding timer
+        if (not confTimer is None):
+            confTimer.stop()
+        # Create a new timer for current config duration,
+        # with a timout handler of this method
+        confTimer  = QtCore.QTimer()
+        confTimer.timeout.connect(self.nextConfig)
+        confTimer.start(configClassesWaits[configIndex][1])
+
+
+### A main window class with an even handler
+class MyQMainWin(QtGui.QMainWindow):
+
+    def keyPressEvent(self, e):
+
+        print "KeyPress", e.key()
+
+        # Escape -> exit
+        if (e.key() == QtCore.Qt.Key_Escape):
+            self.close()
+        # space -> next config
+        elif (e.key() == QtCore.Qt.Key_Space):
+            graphics.nextConfig()
+
 
 
 if __name__ == '__main__':
@@ -165,20 +191,16 @@ if __name__ == '__main__':
     #     - configuration class of this configuration
     #     - duration to display this config b4 moving to next (msecs)
     configClassesWaits = [
-        [ConfigCML, 1000],
-        [ConfigCML2, 2000],
-        [ConfigCML3, 3000],
-        [ConfigCML4, 10000],
-        [ConfigCML5, 5000],
-        [ConfigCML, 5000],
-        [ConfigCML2, 10000],
-        [ConfigCML4, 5000],
-        [ConfigCML5, 10000]
+        [ConfigCML, 3000],
+        [ConfigCML2, 3000],
+        #[ConfigCML3, 3000],
+        [ConfigCML4, 3000],
+        [ConfigCML5, 3000],
         ]
 
     i=0
     app = QtGui.QApplication([])
-    win = QtGui.QMainWindow()
+    win = MyQMainWin()
     win.setWindowTitle('CML Sound Test')
     win.setObjectName("MainWindow")
 
@@ -206,6 +228,7 @@ if __name__ == '__main__':
     #timer3.timeout.connect(graphics.nextConfig)
     #timer3.start(10000)
 
+    confTimer = None
     graphics.nextConfig()
 
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):

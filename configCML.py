@@ -16,13 +16,14 @@ from analysisCML import *
 class ConfigCML:
 
     def __init__(self, lastConfig):
+        self.name = "CML"
         self.sideLen = 80
         self.colorMap = 'thermal'
         self.colorsNum = 256
 
-        #self.initLattice=randomPing(self.sideLen,self.sideLen,scaleFactor=0.0)
+        self.initLattice=randomPing(self.sideLen,self.sideLen,scaleFactor=0.0)
 
-        self.initLattice=imageCML('./sri_mandala.jpg');
+        #self.initLattice=imageCML('./sri_mandala.jpg');
         #self.initLattice=magicSquare(self.sideLen)
 
         #initLattice=primesSquare(sidelen)
@@ -46,6 +47,7 @@ class ConfigCML:
 class ConfigCML2:
 
     def __init__(self, lastConfig):
+        self.name = "CML2"
         self.sideLen = 80
         self.colorMap = 'flame'
         self.colorsNum = 256
@@ -75,6 +77,7 @@ class ConfigCML2:
 class ConfigCML3:
 
     def __init__(self, lastConfig):
+        self.name = "CML3"
         self.sideLen = 80
         self.colorMap = 'blugr3'
         self.colorsNum = 256
@@ -103,6 +106,7 @@ class ConfigCML3:
 class ConfigCML4:
 
     def __init__(self, lastConfig):
+        self.name = "CML4"
         self.sideLen = 80
         self.colorMap = 'blugreen'
         self.colorsNum = 256
@@ -133,6 +137,7 @@ class ConfigCML4:
 class ConfigCML5:
 
     def __init__(self, lastConfig):
+        self.name = "CML5"
         self.sideLen = 80
         self.colorMap = 'grey'
         self.colorsNum = 256

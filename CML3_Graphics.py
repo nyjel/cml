@@ -31,6 +31,7 @@ class CmlGraphics:
     def __init__(self, config):
 
         self.config = config
+        self.scale = 1.0
         gei = GradientEditorItem()
 
         # see definition of GradientEditorItem() to define an LUT
@@ -114,7 +115,8 @@ class CmlGraphics:
         if (i>1 and i % self.config.drawmod==0):
             #llshow=cml.matrix*128
 
-            llshow = zoom(((self.config.cml.matrix)+1)*128, 8, order=1)
+            scaledVal = (self.config.cml.matrix * self.scale)+1
+            llshow = zoom(scaledVal*128, 8, order=1)
             #llshow=zoom(((stats.spin)+1)*128, 8, order=1)
             ## Display the data
             rawImg.setImage(llshow, lut=self.config.lut)
@@ -165,6 +167,32 @@ class CmlGraphics:
         confTimer.timeout.connect(self.nextConfig)
         confTimer.start(configClassesWaits[configIndex][1])
 
+    ### reset to the final config, run for duration of 'finalWait'
+    ### then fade to black
+    def finalConfig(self):
+        global configIndex, configClassesWaits, confTimer, finalConfig, finalWait
+        self.config = finalConfig(self.config)
+        print "Switched to final config", self.config.name
+        # Kill outstanding timer
+        if (not confTimer is None):
+            confTimer.stop()
+        # Create a new timer for current config duration,
+        # with a timout handler of the fade out
+        confTimer  = QtCore.QTimer()
+        confTimer.timeout.connect(self.fadeToBlack)
+        confTimer.start(finalWait)
+
+    def fadeToBlack(self):
+        print "Fading to black: scale", self.scale
+        global confTimer, fadeDecrement
+        # Kill outstanding timer
+        if (not confTimer is None):
+            confTimer.stop()
+        self.scale = self.scale - fadeDecrement
+        if (self.scale > 0):
+            confTimer  = QtCore.QTimer()
+            confTimer.timeout.connect(self.fadeToBlack)
+            confTimer.start(100) # 1 tenth sec
 
 ### A main window class with an even handler
 class MyQMainWin(QtGui.QMainWindow):
@@ -183,6 +211,9 @@ class MyQMainWin(QtGui.QMainWindow):
         # space -> next config
         elif (e.key() == QtCore.Qt.Key_Space):
             graphics.nextConfig()
+        # backspace -> final config
+        elif (e.key() == QtCore.Qt.Key_Backspace):
+            graphics.finalConfig()
 
 
 
@@ -202,6 +233,12 @@ if __name__ == '__main__':
         [ConfigCML4, 3000],
         [ConfigCML5, 3000],
         ]
+
+    finalConfig = ConfigCML6
+    finalWait = 3000
+    finalFadeDuration = 5000
+    fadeDecrement = 100.0 / finalFadeDuration
+
 
     i=0
     app = QtGui.QApplication([])

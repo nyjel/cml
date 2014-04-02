@@ -5,6 +5,8 @@ For glitch free sound, you want a long buffer in pyo and order 1 on numpy zoom
 """
 
 import pickle
+import signal
+import sys
 
 from scipy.ndimage import zoom
 from diffusiveCML import DiffusiveCML
@@ -274,6 +276,12 @@ def cmlPat():
         cml.kernelType=kernIni
         cml.kernelUpdate()
 
+def signal_term_handler(signal, frame):
+    print 'CML_Sound got SIGTERM'
+    s.recstop()
+    s.stop()
+    sys.exit(0)
+
 
 ## Start Qt event loop unless running in interactive mode or using pyside.
 if __name__ == '__main__':
@@ -294,6 +302,8 @@ if __name__ == '__main__':
 
     # prime the pump
     readStatsFromFile()
+
+    signal.signal(signal.SIGTERM, signal_term_handler)
 
     while True:
         time.sleep(5)

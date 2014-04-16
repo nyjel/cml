@@ -227,11 +227,11 @@ if __name__ == '__main__':
     #     - configuration class of this configuration
     #     - duration to display this config b4 moving to next (msecs)
     configClassesWaits = [
-        [ConfigCML, 3000],
-        [ConfigCML2, 3000],
+        [ConfigCML, 30000],
+        [ConfigCML2, 30000],
         #[ConfigCML3, 3000],
-        [ConfigCML4, 3000],
-        [ConfigCML5, 3000],
+        [ConfigCML4, 30000],
+        [ConfigCML5, 30000],
         ]
 
     finalConfig = ConfigCML6
@@ -274,7 +274,7 @@ if __name__ == '__main__':
     graphics.nextConfig()
 
     # Launch sound CML subprocess and process in global var
-    subProcess = subprocess.Popen(args=["python CML3_Sound.py"], shell=True)
+    subProcess = subprocess.Popen(args=["python CML4_Sound.py"], shell=True)
 
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         QtGui.QApplication.instance().exec_()
